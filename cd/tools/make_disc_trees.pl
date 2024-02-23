@@ -334,6 +334,9 @@ if ($max_done == 0) {
 }
 
 print LOG "Finished: $pkgs_done packages placed\n";
+
+last_minute_update($disknum);
+
 print "Finished: $pkgs_done packages placed\n";
 system("date >> $log");
 
@@ -344,6 +347,46 @@ close(LOG);
 #  Local helper functions
 #
 #############################################
+
+# Only once we know how many CDs we're making can we fill in the
+# TOTALNUM number in README.{html,txt} (and therefore also update the
+# md5sum.txt entries for those files)
+sub last_minute_update {
+    my $total_disks = shift;
+
+    for (my $disknum = 1; $disknum <= $total_disks; $disknum++) {
+	my $cddir = "$bdir/CD$disknum";
+
+	chdir $cddir;
+
+	for my $upd ("README.html", "README.txt") {
+	    my $buf = "";
+	    print LOG "  Last-minute update of $cddir/$upd\n";
+	    open(README, "< $upd") or
+		die "Failed to open $upd for reading: $!\n";
+	    while (defined (my $line = <README>)) {
+		$line =~ s/TOTALNUM/$total_disks/g;
+		$buf .= $line
+	    }
+	    close(README);
+	    open(README, "> $upd") or
+		die "Failed to open $upd for writing: $!\n";
+	    print README $buf;
+	    close(README);
+	}
+
+	# Now update the md5sums.txt for the README files
+	open(MD5LIST, ">> md5sum.txt") or
+	    die "Failed to open md5sum.txt file: $!\n";
+	foreach my $file (glob "./README.*") {
+	    my ($md5, $size) = checksum_file($file, "md5");
+	    printf MD5LIST "%s  %s\n", $md5, $file;
+	}
+	close(MD5LIST);
+	chdir $bdir;
+    }
+}
+
 # Load up information about all the packages
 sub load_packages_cache {
     my $arch = shift;
@@ -811,7 +854,7 @@ sub start_disc {
     # Grab all the early stuff, apart from dirs that will change later
     print "  Starting the md5sum.txt file\n";
     chdir $cddir;
-    system("find . -type f | grep -v -e ^\./\.disk -e ^\./dists | xargs md5sum >> md5sum.txt");
+    system("find . -type f | grep -v -e ^\./\.disk -e ^\./dists -e ^\./README | xargs md5sum >> md5sum.txt");
     chdir $bdir;
 
     $mkisofs_opts = "";
@@ -944,6 +987,7 @@ sub finish_disc {
 		find (\&md5_files_for_md5sum, $dir);
 	    }
 	}
+
 	close(MD5LIST);
 
 	# And sort; it should make things faster for people checking
