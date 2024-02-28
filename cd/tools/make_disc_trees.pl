@@ -195,6 +195,7 @@ while (defined (my $pkg = <INLIST>)) {
         if ($disknum > $maxcds) {
             print LOG "Disk $disknum is beyond the configured MAXCDS of $maxcds; exiting now...\n";
             $max_done = 1;
+            $disknum--;
             last;
         }
         print LOG "Starting new disc $disknum at " . `date` . "\n";
