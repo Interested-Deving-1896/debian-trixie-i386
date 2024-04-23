@@ -246,6 +246,10 @@ while (defined (my $pkg = <INLIST>)) {
                     if (($pkgname =~ /^\Q$entry\E$/m)) {
                         print LOG "Re-including $reinclude_pkg due to match on \"\^$entry\$\"\n";
                         $guess_size = int($hfs_mult * add_packages($cddir, $reinclude_pkg));
+			if ($guess_size > $maxdiskblocks) {
+			    print LOG "$reinclude_pkg will never fit - it is $guess_size blocks against a disk size of $maxdiskblocks. ABORT\n";
+			    die "$reinclude_pkg will never fit - it is $guess_size blocks against a disk size of $maxdiskblocks. ABORT\n";
+			}
                         $size += $guess_size;
                         print LOG "CD $disknum: GUESS_TOTAL is $size after adding $reinclude_pkg\n";
                         $pkgs_this_cd++;
@@ -259,6 +263,10 @@ while (defined (my $pkg = <INLIST>)) {
             my $overflowpkg = pop @overflowlist;
             print LOG "Adding a package that failed on the last disc: $overflowpkg\n";
             $guess_size = int($hfs_mult * add_packages($cddir, $overflowpkg));
+	    if ($guess_size > $maxdiskblocks) {
+		print LOG "$overflowpkg will never fit - it is $guess_size blocks against a disk size of $maxdiskblocks. ABORT\n";
+		die "$overflowpkg will never fit - it is $guess_size blocks against a disk size of $maxdiskblocks. ABORT\n";
+	    }
             $size += $guess_size;
             print LOG "CD $disknum: GUESS_TOTAL is $size after adding $overflowpkg\n";
             $pkgs_this_cd++;
@@ -281,6 +289,10 @@ while (defined (my $pkg = <INLIST>)) {
     } else {
         $guess_size = int($hfs_mult * add_packages($cddir, $pkg));
         $size += $guess_size;
+	if ($guess_size > $maxdiskblocks) {
+	    print LOG "$pkg will never fit - it is $guess_size blocks against a disk size of $maxdiskblocks. ABORT\n";
+	    die "$pkg will never fit - it is $guess_size blocks against a disk size of $maxdiskblocks. ABORT\n";
+	}
         push (@pkgs_added, $pkg);
         print LOG "CD $disknum: GUESS_TOTAL is $size after adding $pkg\n";
         if (($size > $maxdiskblocks) ||
