@@ -1,0 +1,33 @@
+#!/bin/bash
+# Do install stuff for riscv64
+# Should work with debian-installer (?)
+# $1 is the CD number
+# $2 is the temporary CD build dir
+#
+
+. $BASEDIR/tools/boot/$DI_CODENAME/common.sh
+
+N=$1
+CDDIR=$2
+
+# Common options for all disks
+add_mkisofs_opt $CDDIR/../$N.mkisofs_opts "-J -joliet-long"
+add_mkisofs_opt $CDDIR/../$N.mkisofs_opts "-cache-inodes"
+add_mkisofs_opt $CDDIR/../$N.mkisofs_opts "-l"
+
+# Exit if this is not CD#1/DVD#1
+if [ $N != "1" ]; then
+    exit 0
+fi
+
+if [ "$DI_WWW_HOME" = "default" ]; then
+    DI_WWW_HOME="https://d-i.debian.org/daily-images/riscv64/daily"
+    try_di_image_cache
+else
+    DI_WWW_HOME=$(echo $DI_WWW_HOME | sed "s,%ARCH%,$ARCH,")
+fi
+
+# Not doing anything special here in terms of setting up bootable
+# media *yet*. Let's see what we can do about UEFI boot from USB or
+# similar?
+copy_arch_images

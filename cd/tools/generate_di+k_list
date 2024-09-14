@@ -253,6 +253,17 @@ grub-efi-arm64-signed
 shim-signed
 #endif
 
+#ifdef ARCH_riscv64
+initramfs-tools
+busybox
+zstd
+flash-kernel
+linux-image-riscv64
+grub-efi
+grub-efi-riscv64
+grub-efi-riscv64-bin
+#endif
+
 #ifdef ARCH_sparc
 initramfs-tools
 grub-ieee1275
