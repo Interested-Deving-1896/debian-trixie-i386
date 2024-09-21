@@ -129,6 +129,11 @@ for image in $BOOT_IMAGES; do
     fi
 done
 
+# Reset this to a sane value
+if [ "$DI_DIR" = "$MIRROR/dists/$DI_DIST/main/installer-%ARCH%/current/images" ]; then
+    DI_DIR="$MIRROR/dists/$DI_DIST/main/installer-$ARCH/current/images"
+fi
+
 # Images that are not really required or may be unavailable.
 for image in $DISK_IMAGES $EXTRA_DISK_IMAGES; do
     if [ ! -e "$image" ]; then
