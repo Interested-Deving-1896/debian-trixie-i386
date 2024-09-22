@@ -14,6 +14,9 @@ debian-cd (3.2.2) UNRELEASED; urgency=medium
     rather than sitting in a loop foreber. Fail properly in #1069682.
   * Add initial support for making riscv64 images
 
+  [ Aurelien Jarno ]
+  * Add support for UEFI booting on riscv64
+
   [ Guido Berhoerster ]
   * Update DebianEdu installer banner and syslinux splash image
     for bookworm
