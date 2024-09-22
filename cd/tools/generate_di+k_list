@@ -370,6 +370,11 @@ libc0.3-xen
 #endif
 #endif
 
+#ifdef ARCH_hurd_amd64
+gnumach-image-1-amd64
+grub-pc
+#endif
+
 #if defined(ARCH_s390) || defined(ARCH_s390x)
 s390-tools
 sysconfig-hardware
