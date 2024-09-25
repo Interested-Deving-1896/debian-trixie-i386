@@ -222,6 +222,9 @@ export JIGDO_CHECKSUM="md5"
 #export amd64_MKISOFS="xorriso"
 #export amd64_MKISOFS_OPTS="-as mkisofs -r -checksum_algorithm_iso sha256,sha512"
 
+export loong64_MKISOFS="xorriso"
+export loong64_MKISOFS_OPTS="-as mkisofs -r -checksum_algorithm_iso sha256,sha512"
+
 # amd64 builds will also include 32-bit UEFI files by default, to
 # allow for booting on weird machines with 64-bit CPUs but 32-bit
 # firmware like Baytrail or some models of Apple iMac. To disable

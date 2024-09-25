@@ -379,4 +379,15 @@ grub-pc
 s390-tools
 sysconfig-hardware
 #endif
+
+#ifdef ARCH_loong64
+initramfs-tools
+busybox
+zstd
+linux-image-loong64
+linux-headers-loong64
+grub-efi
+grub-efi-loong64
+grub-efi-loong64-bin
+#endif
 EOF
