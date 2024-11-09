@@ -20,7 +20,7 @@ if [ $N != "1" ]; then
 fi
 
 if [ "$DI_WWW_HOME" = "default" ]; then
-    DI_WWW_HOME="https://d-i.debian.org/daily-images/hppa/daily/cdrom/2.6"
+    DI_WWW_HOME="https://d-i.debian.org/daily-images/hppa/daily"
     try_di_image_cache
 else
     DI_WWW_HOME=$(echo $DI_WWW_HOME | sed "s,%ARCH%,$ARCH,")
@@ -42,7 +42,7 @@ fi
 
 if [ ! "$DI_WWW_HOME" ];then
         if [ ! "$DI_DIR" ];then
-           DI_DIR="$MIRROR/dists/$DI_DIST/main/installer-$ARCH/current/images/cdrom/2.6"
+           DI_DIR="$MIRROR/dists/$DI_DIST/main/installer-$ARCH/current/images"
         fi
 else
 	DI_DIR="di_stuff"
@@ -50,12 +50,12 @@ else
 	$WGET -r -nd --no-parent -P "$DI_DIR" "$DI_WWW_HOME"
 fi
 	
-K32=$(basename "$DI_DIR"/cdrom/2.6/vmlinuz-*-parisc)
-K64=$(basename "$DI_DIR"/cdrom/2.6/vmlinuz-*-parisc64*)
+K32=$(basename "$DI_DIR"/cdrom/vmlinuz-*-parisc)
+K64=$(basename "$DI_DIR"/cdrom/vmlinuz-*-parisc64*)
 
-cp "$DI_DIR"/cdrom/2.6/$K32  "$CDDIR/install"/$K32
-cp "$DI_DIR"/cdrom/2.6/$K64  "$CDDIR/install"/$K64
-cp "$DI_DIR"/cdrom/2.6/initrd.gz "$CDDIR/install"
+cp "$DI_DIR"/cdrom/$K32  "$CDDIR/install"/$K32
+cp "$DI_DIR"/cdrom/$K64  "$CDDIR/install"/$K64
+cp "$DI_DIR"/cdrom/initrd.gz "$CDDIR/install"
 
 add_mkisofs_opt $CDDIR/../$1.mkisofs_opts "-hppa-cmdline '0/vmlinuz initrd=0/ramdisk${KERNEL_PARAMS:+ $KERNEL_PARAMS}'"
 add_mkisofs_opt $CDDIR/../$1.mkisofs_opts "-hppa-kernel-32 install/$K32"
