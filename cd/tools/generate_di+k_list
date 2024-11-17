@@ -257,11 +257,11 @@ shim-signed
 initramfs-tools
 busybox
 zstd
-flash-kernel
 linux-image-riscv64
 grub-efi
 grub-efi-riscv64
 grub-efi-riscv64-bin
+u-boot-efi-dtb
 #endif
 
 #ifdef ARCH_sparc
