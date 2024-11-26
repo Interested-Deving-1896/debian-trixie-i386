@@ -1705,16 +1705,16 @@ sub add_packages {
         } else {
 	    my $new_blocks = add_Packages_entry($dir, $arch, $in_backports, $package_info);
 	    msg_ap(1, "    $new_blocks blocks for new Packages entry\n");
-            $total_blocks += new_blocks;
+            $total_blocks += $new_blocks;
 
             $new_blocks = add_md5_entry($dir, $arch, $in_backports, $package_info);
 	    msg_ap(1, "    $new_blocks blocks for new md5 entry\n");
-            $total_blocks += new_blocks;
+            $total_blocks += $new_blocks;
 
             if (!($arch eq "source")) {
                 $new_blocks = add_trans_desc_entry($dir, $arch, $in_backports, $package_info);
 		msg_ap(1, "    $new_blocks blocks for translated descriptions\n");
-                $total_blocks += new_blocks;
+                $total_blocks += $new_blocks;
             }
 
             foreach my $file (@files) {
@@ -1737,17 +1737,17 @@ sub add_packages {
                     # on a multi-arch disc
                     $new_blocks = get_file_blocks($realfile);
 		    msg_ap(1, "    $new_blocks blocks for file $realfile\n");
-		    $total_blocks += new_blocks;
+		    $total_blocks += $new_blocks;
 
                     $new_blocks = good_link ($realfile, "$dir/$file");
 		    msg_ap(1, "    $new_blocks blocks for link\n");
-		    $total_blocks += new_blocks;
+		    $total_blocks += $new_blocks;
 
                     msg_ap(0, "  Linked $dir/$file\n");
                     if ($firmware_package{$pkgname}) {
 			$new_blocks = add_firmware_stuff($dir, $arch, $in_backports, $package_info);
 			msg_ap(1, "    $new_blocks blocks for firmware stuff\n");
-			$total_blocks += new_blocks;
+			$total_blocks += $new_blocks;
                     }
                 } else {
                     msg_ap(0, "  $dir/$file already linked in\n");
