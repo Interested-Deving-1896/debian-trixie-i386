@@ -13,6 +13,7 @@ debian-cd (3.2.2) UNRELEASED; urgency=medium
   * make_disc_trees.pl: if files will not fit on media, fail loudly
     rather than sitting in a loop forever. Fail properly in #1069682.
   * Add initial support for making riscv64 images
+  * Cope with package name changes in udeb packages. Closes: #1084789.
 
   [ Aurelien Jarno ]
   * Add support for UEFI booting on riscv64
