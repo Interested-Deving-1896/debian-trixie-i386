@@ -14,6 +14,8 @@ debian-cd (3.2.2) UNRELEASED; urgency=medium
     rather than sitting in a loop forever. Fail properly in #1069682.
   * Add initial support for making riscv64 images
   * Cope with package name changes in udeb packages. Closes: #1084789.
+  * Check that the first image has a linux-image-* package included,
+    and abort if not.
 
   [ Aurelien Jarno ]
   * Add support for UEFI booting on riscv64

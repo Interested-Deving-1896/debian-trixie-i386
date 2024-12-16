@@ -618,6 +618,19 @@ sub check_base_installable {
 		close PLIST;
 	}
 
+	# The system must have a kernel included. Check for that
+	# first.
+	my $found_kernel = 0;
+	foreach my $pkg (keys %on_disc) {
+	    if $pkg =~ /^linux-image-/ {
+		$found_kernel = 1;
+	    }
+	}
+	if (! $found_kernel) {
+	    $ok++;
+	    print LOG "No linux-image-* package(s) found\n";
+	}
+
 	if (defined($ENV{'BASE_EXCLUDE'})) {
 		open (ELIST, $ENV{'BASE_EXCLUDE'})
 			|| die "Can't open base_exclude file $ENV{'BASE_EXCLUDE'} : $!\n";
@@ -946,12 +959,9 @@ sub finish_disc {
 		if ($ok == 0) {
 			open(my $fh, ">>", "$cddir/.disk/base_installable");
 			close($fh);
-			print "  Found all files needed for debootstrap for all binary arches\n";
+			print "  Found all files needed for debootstrap and kernel for all binary arches\n";
 		} else {
-			print "  $ok files missing for debootstrap, not creating base_installable\n";
-			if ($disktype eq "BC") {
-				print "  This is expected - building a BC\n";
-			}
+			die "  $ok files missing for debootstrap and kernel, aborting!\n";
 		}
 	}
 
