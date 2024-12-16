@@ -600,6 +600,13 @@ sub check_base_installable {
 	my $p;
 	my $db_error = 0;
 	my $error_string = "";
+	my $kernel_name = "linux";
+
+	if ($arch =~ /hurd/) {
+		$kernel_name = "gnumach";
+	} elsif ($arch =~ /kfreebsd/) {
+		$kernel_name = "kfreebsd";
+	}
 
 	open (PLIST, $packages_file)
 		|| die "Can't open Packages file $packages_file : $!\n";
@@ -622,13 +629,13 @@ sub check_base_installable {
 	# first.
 	my $found_kernel = 0;
 	foreach my $pkg (keys %on_disc) {
-	    if ($pkg =~ /^linux-image-/) {
-		$found_kernel = 1;
-	    }
+		if ($pkg =~ /^$kernel_name-image-/) {
+			$found_kernel = 1;
+		}
 	}
 	if (! $found_kernel) {
-	    $ok++;
-	    print LOG "No linux-image-* package(s) found\n";
+		$ok++;
+		print LOG "No $kernel_name-image-* package(s) found\n";
 	}
 
 	if (defined($ENV{'BASE_EXCLUDE'})) {
