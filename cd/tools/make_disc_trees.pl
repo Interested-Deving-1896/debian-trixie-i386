@@ -622,7 +622,7 @@ sub check_base_installable {
 	# first.
 	my $found_kernel = 0;
 	foreach my $pkg (keys %on_disc) {
-	    if $pkg =~ /^linux-image-/ {
+	    if ($pkg =~ /^linux-image-/) {
 		$found_kernel = 1;
 	    }
 	}
