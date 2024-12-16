@@ -212,6 +212,15 @@ linux-image-sb1-bcm91250a
 linux-image-sb1a-bcm91480b
 #endif
 
+#ifdef ARCH_mips64el
+initramfs-tools
+linux-image-5kc-malta
+linux-image-loongson-3
+linux-image-mips64r2el
+linux-image-mips64r6el
+linux-image-octeon
+#endif
+
 #ifdef ARCH_armel
 initramfs-tools
 busybox
@@ -378,6 +387,7 @@ grub-pc
 #if defined(ARCH_s390) || defined(ARCH_s390x)
 s390-tools
 sysconfig-hardware
+linux-image-s390x
 #endif
 
 #ifdef ARCH_loong64
