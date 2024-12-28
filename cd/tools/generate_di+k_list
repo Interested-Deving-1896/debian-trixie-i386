@@ -74,6 +74,10 @@ open-iscsi
  */
 multipath-tools-boot
 
+/* Needed for pkgsel */
+tasksel-data
+tasksel
+
 /* Networking */
 wireless-tools
 ppp

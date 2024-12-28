@@ -16,6 +16,8 @@ debian-cd (3.2.2) UNRELEASED; urgency=medium
   * Cope with package name changes in udeb packages. Closes: #1084789.
   * Check that the first image has a linux-image-* package included,
     and abort if not.
+  * tools/generate_di+k_list: Add explicit config to force tasksel and
+    tasksel-data onto image 1
 
   [ Aurelien Jarno ]
   * Add support for UEFI booting on riscv64
