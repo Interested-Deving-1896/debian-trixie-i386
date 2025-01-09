@@ -198,7 +198,7 @@ while (defined (my $pkg = <INLIST>)) {
             $disknum--;
             last;
         }
-        print LOG "Starting new disc $disknum at " . `date` . "\n";
+        print LOG "Starting new disc $disknum at " . `date`;
         start_disc();
         print LOG "  Specified size: $diskdesc, $maxdiskblocks 2K-blocks maximum\n";
         print "  Placing packages into image $disknum\n";
@@ -875,15 +875,16 @@ sub get_disc_size {
 sub start_disc {
     my $error = 0;
 
+    get_disc_size();
+
+    print "Starting new \"$archlist\" $disktype $disknum at $basedir/$codename/CD$disknum\n";
+    print "  Specified size for this image: $diskdesc, $maxdiskblocks 2K-blocks maximum\n";
+
     $error = system("$basedir/tools/start_new_disc $basedir $mirror $tdir $codename \"$archlist\" $disknum");
     if ($error != 0) {
 	die "    Failed to start disc $disknum, error $error\n";
     }
 
-    get_disc_size();
-
-    print "Starting new \"$archlist\" $disktype $disknum at $basedir/$codename/CD$disknum\n";
-    print "  Specified size for this image: $diskdesc, $maxdiskblocks 2K-blocks maximum\n";
     # Grab all the early stuff, apart from dirs that will change later
     print "  Starting the md5sum.txt file\n";
     chdir $cddir;
