@@ -240,7 +240,13 @@ install_firmwares_initrd () {
             for FILE in $FILES; do
                 dpkg -x "${MIRROR}/${FILE}" ${FWDIR}
             done
-            (cd ${FWDIR} ; find lib/firmware usr/lib/firmware | cpio -oA -H newc -F $initrd)
+	    FWLOCATIONS=""
+	    for dir in lib/firmware usr/lib/firmware; do
+		if [ -d $dir ]; then
+		    FWLOCATIONS="$FWLOCATIONS $dir"
+		fi
+	    done
+            (cd ${FWDIR} ; find $FWLOCATIONS | cpio -oA -H newc -F $initrd)
             pigz -9nm $initrd
             rm -fr $FWDIR
 	else
