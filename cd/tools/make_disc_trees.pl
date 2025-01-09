@@ -237,7 +237,8 @@ while (defined (my $pkg = <INLIST>)) {
         # lists intersect and we should re-include some packages
         if (scalar @unexclude_packages && scalar @excluded_package_list) {
             foreach my $reinclude_pkg (@excluded_package_list) {
-                my ($arch, $component, $pkgname, $pkgsize) = split /:/, $reinclude_pkg;
+                my ($arch, $component, $pkgname, $pkgsize, $pkgversion) = split /:/, $reinclude_pkg;
+		$pkgversion = fixup_pkgversion($pkgversion);
                 foreach my $entry (@unexclude_packages) {
                     if (($pkgname =~ /^\Q$entry\E$/m)) {
                         print LOG "Re-including $reinclude_pkg due to match on \"\^$entry\$\"\n";
@@ -412,8 +413,8 @@ sub last_minute_update {
 sub load_packages_cache {
     my $arch = shift;
     my @pkglist;
-    my @tmplist;
-    my ($p);
+    my %tmphash;
+    my ($p, $pkgversion);
     my $num_pkgs = 0;
 
     $ENV{'LC_ALL'} = 'C'; # Required since apt is now translated
@@ -424,8 +425,12 @@ sub load_packages_cache {
 
     while (defined (my $pkg = <INLIST>)) {
         chomp $pkg;
-        my ($junk, $component, $pkgname, $pkgsize) = split /:/, $pkg;
-        push @tmplist, $pkgname;
+        my ($junk, $component, $pkgname, $pkgsize, $pkgversion) = split /:/, $pkg;
+	# Store these in a hash and flatten to a list later, so that
+	# we get a unique set; otherwise, apt-cache source confusingly
+	# complains later if we have duplicate entries in the list of
+	# package... :-/
+	$tmphash{$pkgname} = 1;
     }
     close INLIST;
 
@@ -433,43 +438,63 @@ sub load_packages_cache {
     print LOG "Reading in package information for $arch:\n";
 
     $/ = ''; # Browse by paragraph
-    @pkglist = (grep (!/\/$codename-backports$/, @tmplist));
+    @pkglist = (grep (!/\/$codename-backports$/, sort(keys %tmphash)));
     while (@pkglist) {
         my (@pkg) = splice(@pkglist,0,200);
         if ($arch eq "source") {
             open (LIST, "$basedir/tools/apt-selection cache showsrc @pkg |")
                 || die "Can't fork : $!\n";
+	    while (defined($_ = <LIST>)) {
+		m/^Package: (\S+)/m and $p = $1;
+		m/^Version: (\S+)/m and $pkgversion = $1;
+		push @{$pkginfo{$arch}{$p}{$pkgversion}}, $_;
+		$num_pkgs++;
+	    }
+	    close LIST;
         } else {
+	    # Use a fixed "version" for binaries here - it makes it
+	    # easier to look things up later.
+	    $pkgversion = "<DEFAULT>";
             open (LIST, "$basedir/tools/apt-selection cache show @pkg |")
                 || die "Can't fork : $!\n";
-        }
-        while (defined($_ = <LIST>)) {
-            m/^Package: (\S+)/m and $p = $1;
-            push @{$pkginfo{$arch}{$p}}, $_;
-            $num_pkgs++;
-        }
-        close LIST;
+	    while (defined($_ = <LIST>)) {
+		m/^Package: (\S+)/m and $p = $1;
+		push @{$pkginfo{$arch}{$p}{$pkgversion}}, $_;
+		$num_pkgs++;
+	    }
+	    close LIST;
+	}
         print LOG "load_packages_cache: Read details of $num_pkgs packages for $arch\n";
     }
     print "  Done: Read details of $num_pkgs packages for $arch\n";
     if ($backports) {
 	$num_pkgs = 0;
-	@pkglist = (grep (/\/$codename-backports$/, @tmplist));
+	@pkglist = (grep (/\/$codename-backports$/, sort(keys %tmphash)));
 	while (@pkglist) {
 	    my (@pkg) = splice(@pkglist,0,200);
 	    if ($arch eq "source") {
 		open (LIST, "USE_BP=1 $basedir/tools/apt-selection cache showsrc @pkg |")
 		    || die "Can't fork : $!\n";
+		while (defined($_ = <LIST>)) {
+		    m/^Package: (\S+)/m and $p = $1;
+		    m/^Version: (\S+)/m and $pkgversion = $1;
+		    push @{$pkginfo{$arch}{"$p/$codename-backports"}{$pkgversion}}, $_;
+		    $num_pkgs++;
+		}
+		close LIST;
 	    } else {
+		# Use a fixed "version" for binaries here - it makes it
+		# easier to look things up later.
+		$pkgversion = "<DEFAULT>";
 		open (LIST, "USE_BP=1 $basedir/tools/apt-selection cache show @pkg |")
 		    || die "Can't fork : $!\n";
+		while (defined($_ = <LIST>)) {
+		    m/^Package: (\S+)/m and $p = $1;
+		    push @{$pkginfo{$arch}{"$p/$codename-backports"}{$pkgversion}}, $_;
+		    $num_pkgs++;
+		}
+		close LIST;
 	    }
-	    while (defined($_ = <LIST>)) {
-		m/^Package: (\S+)/m and $p = $1;
-		push @{$pkginfo{$arch}{"$p/$codename-backports"}}, $_;
-		$num_pkgs++;
-	    }
-	    close LIST;
 	    print LOG "load_packages_cache: Read details of $num_pkgs packages for $arch backports\n";
 	}
 	print "  Done: Read details of $num_pkgs packages for $arch backports\n";
@@ -558,7 +583,7 @@ sub load_descriptions {
 
 sub should_start_extra_nonfree {
     my $pkg = shift;
-    my ($arch, $component, $pkgname, $pkgsize) = split /:/, $pkg;
+    my ($arch, $component, $pkgname, $pkgsize, $pkgversion) = split /:/, $pkg;
 
     if ($extranonfree) {
 	foreach my $nf_comp (@nonfree_components) {
@@ -573,7 +598,7 @@ sub should_start_extra_nonfree {
 
 sub should_exclude_package {
     my $pkg = shift;
-    my ($arch, $component, $pkgname, $pkgsize) = split /:/, $pkg;
+    my ($arch, $component, $pkgname, $pkgsize, $pkgversion) = split /:/, $pkg;
     my $should_exclude = 0;
 
     foreach my $entry (@exclude_packages) {
@@ -1390,7 +1415,7 @@ sub remove_Packages_entry {
     my $arch = shift;
     my $in_backports = shift;
     local $_ = shift;
-    my ($p, $file, $section, $pdir, $pkgfile, $tmp_pkgfile, $match, $gz,
+    my ($p, $file, $section, $pkgversion, $pdir, $pkgfile, $tmp_pkgfile, $match, $gz,
         $st1, $st2, $size1, $size2);
     my $blocks_removed = 0;
     my $old_blocks = 0;
@@ -1398,6 +1423,7 @@ sub remove_Packages_entry {
 
     m/^Package: (\S+)/m and $p = $1;
     m/^Section: (\S+)/m and $section = $1;
+    m/^Version: (\S+)/m and $pkgversion = $1;
 
     if ($arch eq "source") {
         m/^Directory: (\S+)/mi and $file = $1;
@@ -1430,10 +1456,18 @@ sub remove_Packages_entry {
 
     $/ = ''; # Browse by paragraph
     while (defined($match = <IFILE>)) {
-        if (! ($match =~ /^Package: \Q$p\E$/m)) {
-            print OFILE $match;
-            $gz->gzwrite($match) or die "Failed to write $pkgfile.gz: $gzerrno\n";
-        }
+	if ($arch eq "source") {
+	    # Have to handle source specially - multiple versions
+	    if ( ($match !~ /^Package: \Q$p\E$/m) or ($match !~ /^Version: \Q$pkgversion\E$/m)) {
+		print OFILE $match;
+		$gz->gzwrite($match) or die "Failed to write $pkgfile.gz: $gzerrno\n";
+	    }
+	} else {
+	    if ($match !~ /^Package: \Q$p\E$/m) {
+		print OFILE $match;
+		$gz->gzwrite($match) or die "Failed to write $pkgfile.gz: $gzerrno\n";
+	    }
+	}
     }
     $/ = $old_split; # Browse by line again
 
@@ -1640,6 +1674,17 @@ sub get_file_blocks {
     return size_in_blocks($st->size);
 }
 
+# Give us a consistent version string, unmangling as required
+sub fixup_pkgversion {
+    my $pkgversion = shift;
+
+    if (!defined $pkgversion or $pkgversion eq "") {
+	return "<DEFAULT>";
+    }
+    $pkgversion =~ s/\%/:/g;
+    return $pkgversion;
+}
+
 sub add_packages {
     my ($p, @files, $d, $realfile, $source, $section, $name, $pkgfile, $pdir);
     my $dir;
@@ -1659,15 +1704,16 @@ sub add_packages {
     }
 
     my $pkg = shift;
-    my ($arch, $component, $pkgname, $pkgsize) = split /:/, $pkg;
+    my ($arch, $component, $pkgname, $pkgsize, $pkgversion) = split /:/, $pkg;
+    $pkgversion = fixup_pkgversion ($pkgversion);
 
     if ("$arch" eq "" or "$pkgname" eq "" or "$pkgname" eq "") {
         die "inconsistent data passed to add_packages: $pkg\n";
     }
 
-    msg_ap(0, "Looking at $pkg: arch $arch, package $pkgname, rollback $rollback\n");
+    msg_ap(0, "Looking at $pkg: arch $arch, package $pkgname, pkgversion $pkgversion, rollback $rollback\n");
 
-    foreach my $package_info (@{$pkginfo{$arch}{$pkgname}}) {
+    foreach my $package_info (@{$pkginfo{$arch}{$pkgname}{$pkgversion}}) {
 	my $in_backports = 0;
 	if ($pkgname =~ /\/$codename-backports/) {
 	    $in_backports = 1;
