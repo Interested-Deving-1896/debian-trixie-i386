@@ -1723,10 +1723,13 @@ sub add_packages {
                 # Remove the link
                 unlink ("$dir/$file") || msg_ap(0, "Couldn't delete file $dir/$file\n");
                 msg_ap(0, "  Rollback: removed $dir/$file\n");
+
+		# Try to remove the leaf directory; will silently fail
+		# if there are still files there, which is OK.
+		my $thisdir = dirname("$dir/$file");
+		rmdir ($thisdir);
             }
-	    # Try to remove the directory; will silently fail if there
-	    # are still files there, which is OK.
-	    rmdir ($dir);
+
         } else {
 	    my $new_blocks = add_Packages_entry($dir, $arch, $in_backports, $package_info);
 	    msg_ap(1, "    $new_blocks blocks for new Packages entry\n");
