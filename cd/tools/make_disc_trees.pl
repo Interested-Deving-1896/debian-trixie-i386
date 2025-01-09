@@ -122,7 +122,6 @@ if ($backports) {
 
 my $disknum = 1;
 my $max_done = 0;
-my $size_check = "";
 
 # Constants used for space calculations
 my $MiB = 1048576;
@@ -147,7 +146,6 @@ my $pkgs_done = 0;
 my $size = 0;
 my $guess_size = 0;
 my @overflowpkg;
-my $mkisofs_check = "$mkisofs $mkisofs_base_opts -r -print-size -quiet";
 my $debootstrap_script = read_env('DEBOOTSTRAP_SCRIPT', "");
 
 chdir $bdir;
@@ -228,9 +226,7 @@ while (defined (my $pkg = <INLIST>)) {
             $mkisofs_dirs = "";
         }
 
-        $size_check = "$mkisofs_check $mkisofs_opts $mkisofs_dirs";
-        $size=`$size_check $cddir`;
-        chomp $size;
+        $size = size_check($cddir, 1);
         $size += $hfs_extra;
         print LOG "CD $disknum: size is $size before starting to add packages\n";
 
@@ -301,9 +297,7 @@ while (defined (my $pkg = <INLIST>)) {
             $count_since_last_check = 0;
             # Recompress files as needed before the size check
             find (\&recompress, "$cddir/dists");
-            print LOG "Running $size_check $cddir\n";
-            $size = `$size_check $cddir`;
-            chomp $size;
+	    $size = size_check($cddir, 0);
             print LOG "CD $disknum: Real current size is $size blocks after adding $pkg\n";
         }
         if ($size > $maxdiskblocks) {
@@ -313,8 +307,7 @@ while (defined (my $pkg = <INLIST>)) {
                 $guess_size = int($hfs_mult * add_packages("--rollback", $cddir, $pkg));
                 # Recompress files as needed before the size check
                 find (\&recompress, "$cddir/dists");
-                $size=`$size_check $cddir`;
-                chomp $size;
+		$size = size_check($cddir, 0);
                 print LOG "CD $disknum: Real current size is $size blocks after rolling back $pkg\n";
                 # Put this package first on the next disc
                 push (@overflowlist, $pkg);
@@ -360,6 +353,21 @@ close(LOG);
 #  Local helper functions
 #
 #############################################
+
+# Ask mkisofs / genisoimage how big a tree is
+sub size_check {
+    my $cddir = shift;
+    my $verbose = shift;
+    my $mkisofs_check = "$mkisofs $mkisofs_base_opts -r -print-size -quiet";
+    my $cmdline = "$mkisofs_check $mkisofs_opts $mkisofs_dirs $cddir";
+
+    if ($verbose) {
+	print LOG "Running $cmdline\n";
+    }
+    $size = `$cmdline 2>/dev/null`;
+    chomp $size;
+    return $size;
+}
 
 # Only once we know how many CDs we're making can we fill in the
 # TOTALNUM number in README.{html,txt} (and therefore also update the
@@ -1034,8 +1042,7 @@ sub finish_disc {
 		$error == 0 || die "DISC_END_HOOK failed with error $error\n";
 	}
 
-	$size = `$size_check $cddir`;
-	chomp $size;
+	$size = size_check($cddir, 0);
 	$bytes = $size * $blocksize;
 	print LOG "CD $disknum$not filled with $pkgs_this_cd packages, $size blocks, $bytes bytes\n";
 	print "  CD $disknum$not filled with $pkgs_this_cd packages, $size blocks, $bytes bytes\n";
