@@ -1702,7 +1702,7 @@ sub add_packages {
                 $total_blocks -= remove_trans_desc_entry($dir, $arch, $in_backports, $package_info);
             }
 	    
-	    if ($firmware_package{$pkgname}) {
+	    if (!($arch eq "source") && $firmware_package{$pkgname}) {
 		$total_blocks -= remove_firmware_stuff($dir, $arch, $in_backports, $package_info);
 	    }
         
@@ -1769,7 +1769,7 @@ sub add_packages {
 		    $total_blocks += $new_blocks;
 
                     msg_ap(0, "  Linked $dir/$file\n");
-                    if ($firmware_package{$pkgname}) {
+                    if (!($arch eq "source") && $firmware_package{$pkgname}) {
 			$new_blocks = add_firmware_stuff($dir, $arch, $in_backports, $package_info);
 			msg_ap(1, "    $new_blocks blocks for firmware stuff\n");
 			$total_blocks += $new_blocks;
