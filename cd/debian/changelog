@@ -18,6 +18,13 @@ debian-cd (3.2.2) UNRELEASED; urgency=medium
     and abort if not.
   * tools/generate_di+k_list: Add explicit config to force tasksel and
     tasksel-data onto image 1
+  * Multiple cleanups in make_disc_trees.pl:
+    + Tweaks to logging
+    + Reduce warnings
+  * Multiple fixes for sources handling:
+    + fix calls to apt-cache showsrc to ensure we get the correct
+      source packages
+    + Cope better with including multiple versions of source packages
 
   [ Aurelien Jarno ]
   * Add support for UEFI booting on riscv64
