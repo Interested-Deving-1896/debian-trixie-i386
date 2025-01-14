@@ -43,6 +43,9 @@ debian-cd (3.2.2) UNRELEASED; urgency=medium
   [ dandan zhang ]
   * Add basic support for loongarch64
 
+  [ Helge Deller ]
+  * Dropped smp part of 64-bit hppa kernel
+
  -- Steve McIntyre <93sam@debian.org>  Mon, 12 Jun 2023 08:36:50 +0100
 
 debian-cd (3.2.1) unstable; urgency=medium
