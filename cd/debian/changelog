@@ -46,9 +46,6 @@ debian-cd (3.2.2) UNRELEASED; urgency=medium
   [ Helge Deller ]
   * Dropped smp part of 64-bit hppa kernel
 
-  [ Olli Janatuinen ]
-  * Use uppercase UEFI file path on loong64
-
  -- Steve McIntyre <93sam@debian.org>  Mon, 12 Jun 2023 08:36:50 +0100
 
 debian-cd (3.2.1) unstable; urgency=medium

@@ -85,8 +85,8 @@ if [ -d boot$N/grub ] ; then
     echo "  Adding EFI boot code for $ARCH on CD$N"
 
     # Move GRUB files to the right place.
-    mkdir -p $CDDIR/EFI/BOOT
-    mcopy -n -i boot$N/grub/efi.img '::efi/boot/bootloongarch64.efi' $CDDIR/EFI/BOOT/BOOTLOONGARCH64.EFI
+    mkdir -p $CDDIR/EFI/boot
+    mcopy -n -s -i boot$N/grub/efi.img '::efi/*' $CDDIR/EFI
     mkdir -p $CDDIR/boot/grub
     mv boot$N/grub/* $CDDIR/boot/grub/
     rmdir boot$N/grub
