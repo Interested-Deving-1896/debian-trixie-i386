@@ -46,6 +46,9 @@ debian-cd (3.2.2) UNRELEASED; urgency=medium
   [ Helge Deller ]
   * Dropped smp part of 64-bit hppa kernel
 
+  [ Wolfgang Schweer ]
+  * Update Debian-edu-full task file. (Closes: #1079261)
+
  -- Steve McIntyre <93sam@debian.org>  Mon, 12 Jun 2023 08:36:50 +0100
 
 debian-cd (3.2.1) unstable; urgency=medium
