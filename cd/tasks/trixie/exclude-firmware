@@ -25,3 +25,11 @@ firmware-intel-sound
 firmware-sof-signed
 intel-microcode
 #endif
+
+/* Let's try and make the netinst work by dropping some unlikely
+   firmware packages */
+#if defined(ARCHarmhf)
+firmware-amd-graphics
+firmware-intel-graphics
+firmware-nvidia-graphics
+#endif
