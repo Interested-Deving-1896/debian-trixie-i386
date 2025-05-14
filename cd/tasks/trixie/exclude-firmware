@@ -7,6 +7,7 @@
    that we can't and won't ship */
 firmware-nvidia-gsp
 firmware-nvidia-tesla-gsp
+firmware-nvidia-tesla-535-gsp
 
 /* If we don't have an arm* architecture, exclude these */
 #if !defined(ARCHarm64) && !defined(ARCHarmel) && !defined(ARCHarmhf)
@@ -26,10 +27,13 @@ firmware-sof-signed
 intel-microcode
 #endif
 
-/* Let's try and make the netinst work by dropping some unlikely
+/* Let's try and make the armhf netinst work by dropping some unlikely
    firmware packages */
 #if defined(ARCHarmhf)
 firmware-amd-graphics
 firmware-intel-graphics
+firmware-ivtv
+firmware-ipw2x00
+firmware-iwlwifi
 firmware-nvidia-graphics
 #endif
