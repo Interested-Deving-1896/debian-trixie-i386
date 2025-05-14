@@ -25,6 +25,13 @@ debian-cd (3.2.2) UNRELEASED; urgency=medium
     + fix calls to apt-cache showsrc to ensure we get the correct
       source packages
     + Cope better with including multiple versions of source packages
+  * Improved base package handling in tools/generate_di+k_list:
+    + Factor out initial, busybox and zstd - all arches should have
+      these.
+    + For all arches, add bootloaders before the kernel image. This
+      will more consistently succeed/fail in edge cases for sizing -
+      we already check if we have a kernel included in the first image
+      in make_disc_trees.pl.
 
   [ Aurelien Jarno ]
   * Add support for UEFI booting on riscv64
