@@ -9,6 +9,11 @@ firmware-nvidia-gsp
 firmware-nvidia-tesla-gsp
 firmware-nvidia-tesla-535-gsp
 
+/* Always exclude this huge package, which is unlikely to be useful as
+   the relevant options are not enabled in the trixie kernel (that'd
+   be CONFIG_PRESTERA at least, plus CONFIG_PRESTERA_PCI possibly) */
+firmware-marvell-prestera
+
 /* If we don't have an arm* architecture, exclude these */
 #if !defined(ARCHarm64) && !defined(ARCHarmel) && !defined(ARCHarmhf)
 arm-trusted-firmware-tools
