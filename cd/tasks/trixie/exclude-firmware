@@ -8,6 +8,7 @@
 firmware-nvidia-gsp
 firmware-nvidia-tesla-gsp
 firmware-nvidia-tesla-535-gsp
+firmware-nvidia-tesla-550-gsp
 
 /* Always exclude this huge package, which is unlikely to be useful as
    the relevant options are not enabled in the trixie kernel (that'd
