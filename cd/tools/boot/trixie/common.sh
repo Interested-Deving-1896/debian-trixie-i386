@@ -239,6 +239,8 @@ install_firmwares_initrd () {
             rm -f $initrdgz
             for FILE in $FILES; do
                 dpkg -x "${MIRROR}/${FILE}" ${FWDIR}
+                # Let hw-detect know about packages embedded this way (#1106005):
+                basename ${FILE} >> ${FWDIR}/usr/lib/firmware/.embedded-firmware-debs
             done
 	    FWLOCATIONS=""
 	    for dir in lib/firmware usr/lib/firmware; do
