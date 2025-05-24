@@ -66,6 +66,7 @@ ufsutils
 zfsutils
 cryptsetup
 cryptsetup-initramfs
+systemd-cryptsetup
 loop-aes-utils
 dmraid
 open-iscsi
