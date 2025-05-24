@@ -392,9 +392,9 @@ fi
 
 # Include sound firmware in initrd so they can be loaded before espeakup starts
 if [ -e "boot$N/isolinux/spk.cfg" ]; then
-    install_firmwares_initrd "$CDDIR/$INSTALLDIR/initrd" "firmware-sof-signed"
+    install_firmwares_initrd "$CDDIR/$INSTALLDIR/initrd" "(firmware-sof-signed|firmware-intel-sound)"
 elif [ -e "boot$N/isolinux/spkgtk.cfg" ]; then
-    install_firmwares_initrd "$CDDIR/$INSTALLDIR/gtk/initrd" "firmware-sof-signed"
+    install_firmwares_initrd "$CDDIR/$INSTALLDIR/gtk/initrd" "(firmware-sof-signed|firmware-intel-sound)"
 fi
 
 sed -i "s|built on|built $BUILD_DATE; d-i|" boot$N/isolinux/f1.txt
