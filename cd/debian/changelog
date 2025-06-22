@@ -58,6 +58,15 @@ debian-cd (3.2.2) UNRELEASED; urgency=medium
   [ Wolfgang Schweer ]
   * Update Debian-edu-full task file. (Closes: #1079261)
 
+  [ Cyril Brulebois ]
+  * Various firmware support updates:
+    + Record firmware packages embedded in the modified initrds - see
+      #1106005
+    + Fix sound firmware inclusion logic for initrd
+    + Add firmware-intel-sound alongside firmware-sof-signed
+    + Add support for firmware-intel-sound patterns
+  * Make sure systemd-cryptsetup is available - see #1092977
+
  -- Steve McIntyre <93sam@debian.org>  Mon, 12 Jun 2023 08:36:50 +0100
 
 debian-cd (3.2.1) unstable; urgency=medium
