@@ -1,4 +1,4 @@
-debian-cd (3.2.2) UNRELEASED; urgency=medium
+debian-cd (3.2.2) unstable; urgency=medium
 
   [ Steve McIntyre ]
   * Start development for trixie
