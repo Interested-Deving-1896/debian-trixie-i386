@@ -305,6 +305,7 @@ grub-ieee1275
 powerpc-utils
 powerpc-ibm-utils
 linux-image-powerpc64le
+linux-image-powerpc64le-64k
 #endif
 
 #ifdef ARCH_alpha
