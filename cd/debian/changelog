@@ -3,6 +3,11 @@ debian-cd (3.2.3) UNRELEASED; urgency=medium
   [ Steve McIntyre ]
   * Add linux-image-powerpc64le-64k for images - let's see if it fits.
 
+  [ Ben Hutchings ]
+  * Add linux-image-powerpc64-64k for images
+  * Default to MKISOFS=xorriso for all architectures
+    We've been assuming this in config for years already.
+
  -- Steve McIntyre <93sam@debian.org>  Sat, 26 Jul 2025 13:18:30 +0100
 
 debian-cd (3.2.2) unstable; urgency=medium
