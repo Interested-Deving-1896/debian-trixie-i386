@@ -298,6 +298,7 @@ hfsutils
 powerpc-utils
 powerpc-ibm-utils
 linux-image-powerpc64
+linux-image-powerpc64-64k
 #endif
 
 #ifdef ARCH_ppc64el
