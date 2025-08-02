@@ -14,6 +14,9 @@ di-utils
 di-utils-shell
 di-utils-reboot
 lowmemcheck
+wget-udeb
+libcrypto3-udeb
+libssl3-udeb
 # build/pkg-lists/cdrom/common, in d-i svn (also included in the
 # root+cd-drivers floppies)
 busybox-udeb
