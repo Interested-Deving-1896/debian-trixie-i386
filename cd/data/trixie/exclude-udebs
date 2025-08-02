@@ -68,6 +68,7 @@ libgtk-directfb-2.0-0-udeb
 # Graphical installer: udebs for X.Org
 xserver-xorg-core-udeb
 xserver-xorg-input-evdev-udeb
+xserver-xorg-input-libinput-udeb
 xserver-xorg-video-fbdev-udeb
 x11-xkb-utils-udeb
 xkb-data-udeb
