@@ -143,3 +143,7 @@ gnumach-udeb
 # We only support grub these days, drop lilo and elilo
 lilo-installer
 elilo-installer
+# Graphical installer: udebs for GTK+ support (future)
+libgtk-3-0-udeb
+libgtk-4-1-udeb
+libvte-2.91-0-udeb
