@@ -59,6 +59,7 @@ libpixman-1-0-udeb
 libpng*-udeb
 libsdl1.2debian-udeb
 mouse-modules-*
+fonts-*
 ttf-*
 fbset-udeb
 # Graphical installer: udebs for directfb
