@@ -8,6 +8,15 @@ debian-cd (3.2.3) UNRELEASED; urgency=medium
   * Default to MKISOFS=xorriso for all architectures
     We've been assuming this in config for years already.
 
+  [ Cyril Brulebois ]
+  * Exclude more udebs to save some space on installation images:
+     - fonts-*, libgtk2.0-0-udeb, xserver-xorg-input-libinput-udeb:
+       included in graphical targets
+     - wget-udeb (plus libcrypto3-udeb and libssl3-udeb): included via
+       build/pkg-lists/base.
+     - libgtk-3-0-udeb, libgtk-4-1-udeb, libvte-2.91-0-udeb: unused at the
+       moment.
+
  -- Steve McIntyre <93sam@debian.org>  Sat, 26 Jul 2025 13:18:30 +0100
 
 debian-cd (3.2.2) unstable; urgency=medium
