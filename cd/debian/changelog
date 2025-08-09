@@ -1,3 +1,10 @@
+debian-cd (3.2.3~deb13u1) UNRELEASED; urgency=medium
+
+  [ Steve McIntyre ]
+  * Backports from master for trixie builds
+
+ -- Steve McIntyre <93sam@debian.org>  Sat, 09 Aug 2025 19:17:57 +0100
+
 debian-cd (3.2.3) UNRELEASED; urgency=medium
 
   [ Steve McIntyre ]
