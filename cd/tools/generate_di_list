@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # Generate a list of packages required for debian-installer
 # This script makes use of the following variables that need to be preset:
-# MIRROR, DI_CODENAME, BASEDIR
+# MIRROR, DI_CODENAME, BASEDIR, ARCHES
 
 use strict;
 use warnings;
@@ -33,7 +33,7 @@ my $DATE=`date`;
 chomp $DATE;
 open(OUT, ">debian-installer") || die "write: $!";
 print OUT << "EOF";
-/* List of udebs to be included so that debian-installer works fine 
+/* List of udebs to be included so that debian-installer works fine
  *
  * This list can be generated with the command:
  * ../tools/generate_di_list
@@ -105,7 +105,7 @@ foreach my $arch (@ARCHES) {
 	    $pz = $pxz;
 	}
 	if (! -f $pz) {
-            print "Missing package file for $arch/$component.\n";
+            print "Missing package file $pz for $arch/$component.\n";
             next;
 	}
 
@@ -141,7 +141,7 @@ foreach my $arch (@ARCHES) {
 		    # Append this driver udeb to a list for that kernel_ver
 		    push(@{ $driver_udebs{$kernel_ver} }, $udeb);
 
-		} elsif ($udeb =~ m/-modules-(\d+)\.(\d+)\.(\d+)-.*-di/) {
+		} elsif ($udeb =~ m/-modules-(\d+)[.](\d+)[.](\d+)(?:[+]deb\d+)?-$arch-di$/msx) {
 		    # Newer udeb package names don't, so use "0" as a dummy value here
 		    my $kernel_ver = di_ker_abi_to_number($1, $2, $3, 0);
 		    if ($kernel_ver > $highest_kernel_ver) {
@@ -160,7 +160,7 @@ foreach my $arch (@ARCHES) {
 	$output .= "/* Udebs found in $pz: */\n";
 	if (scalar (@output_udebs) > 0) {
 	    $output .= "/* Non-kernel udebs */\n";
-	    foreach my $udeb (@output_udebs) {
+	    foreach my $udeb ( sort @output_udebs ) {
 		$output .= "$udeb\n";
 	    }
 	}
@@ -169,7 +169,7 @@ foreach my $arch (@ARCHES) {
 	    $output .= "/* Next: $num_this_abi udebs for kernel/ABI version ";
 	    $output .= number_to_di_ker_abi($highest_kernel_ver);
 	    $output .= " */\n";
-	    foreach my $udeb (@{ $driver_udebs{$highest_kernel_ver}}) {
+	    foreach my $udeb ( sort @{ $driver_udebs{$highest_kernel_ver} } ) {
 		$output .= "$udeb\n";
 	    }
 	    foreach my $key (keys (%driver_udebs)) {
