@@ -1,7 +1,10 @@
 debian-cd (3.2.3~deb13u1) UNRELEASED; urgency=medium
 
   [ Steve McIntyre ]
-  * Backports from master for trixie builds
+  * Backports from master for trixie builds:
+    * Close <li> tags to avoid warnings on some browsers
+    * generate_di_list: Handle new Kernel module ABI names and other improvements
+    * tools: match +deb<version> while scanning for kernel version
 
  -- Steve McIntyre <93sam@debian.org>  Sat, 09 Aug 2025 19:17:57 +0100
 
