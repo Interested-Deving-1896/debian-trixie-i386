@@ -1,0 +1,95 @@
+#!/bin/bash
+
+TOPDIR=$(dirname $0)
+if [ "$TOPDIR" = "." ] ; then
+    TOPDIR=`pwd`
+fi
+export TOPDIR
+
+. $TOPDIR/settings.sh
+. $TOPDIR/daily.sh
+. $TOPDIR/common.sh
+
+BUILDLOCK=$HOME/.debian-cd.lock
+BUILDS_RUNNING=""
+
+if [ "$RELEASE_BUILD"x = ""x ] ; then
+    export SID_WANTED=1
+    export OUT_FREE_SID=${PUBDIRJIG}/sid_d-i/${DATE_BUILD}
+    export RSYNC_TARGET_FREE=${OUT_BASE}/daily-builds
+else
+    echo "Don't support release builds of dailies! Use cronjob.weekly instead"
+    exit 1
+fi
+
+export DI=sid
+export DI_DIST=$DI
+export DI_CODENAME=$DI
+export DI_WWW_HOME=default
+export DI_DIR="$ARCH_DI_DIR"
+
+if [ "$PARALLEL"x = ""x ]; then
+    PARALLEL=20
+fi
+
+# Make sure the machine isn't rebooted while we're busy
+reboot_lock
+
+cd $TOPDIR &&
+if lockfile -r0 $BUILDLOCK ; then
+
+#    echo "NOT checking for git updates"
+    echo "git update debian-cd"
+    cd debian-cd && git pull ; cd ..
+
+    cd $TOPDIR
+
+    # Do the build in parallel
+    make -f Makefile.daily -j $PARALLEL $TARGETS
+
+    if [ "$NOSYNC"x = ""x ] ; then
+        echo "Clean up old builds on build machine:"
+        for DIR in $PUBDIRJIG/* ; do
+	    cd $DIR
+	    for THIS in 20* ; do
+                if [ $THIS != $DATE-$BUILDNUM ] ; then
+		    echo "  Deleting $DIR/$THIS"
+		    rm -rf $DIR/$THIS
+                fi
+	    done
+        done
+
+	echo "Sync normal builds across to output dir: $RSYNC_TARGET_FREE"
+        rsync -rHlt $PUBDIRJIG/ $RSYNC_TARGET_FREE/
+
+        echo "Remove extra builds:"
+        ~/bin/remove_extra_dailies
+	
+        echo "$DATE-$BUILDNUM" > $RSYNC_TARGET_FREE/daily-trace
+
+	case $(hostname) in
+	    pettersson*)
+		ISO_OPTIONS='--exclude .iso-wanted'
+		;;
+	    *)
+		ISO_OPTIONS='--exclude *.iso'
+		;;
+	esac
+
+	(cd ${RSYNC_TARGET_FREE}/sid_d-i/${DATE_BUILD} && find . -name '*.iso' > .iso-wanted)
+	rsync_to_umu ${RSYNC_TARGET_FREE}/sid_d-i/${DATE_BUILD}/ \
+			    daily-builds/sid_d-i/${DATE_BUILD}/ \
+			    "$ISO_OPTIONS"
+	publish_at_umu daily-builds/sid_d-i/${DATE_BUILD}
+
+        trigger_openqa daily-builds/sid_d-i/${DATE_BUILD} "$(debversion)" ${DATE_BUILD} amd64,arm64
+
+	rsync_to_umu ${OUT_BASE}/cd-sources/ cd-sources/
+	publish_at_umu cd-sources
+
+    fi
+
+    cd $TOPDIR
+    rm -f $BUILDLOCK
+fi
+

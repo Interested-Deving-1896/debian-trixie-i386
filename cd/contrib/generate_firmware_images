@@ -1,0 +1,87 @@
+#!/bin/bash
+
+# set -e
+
+TOPDIR=$(dirname $0)
+if [ "$TOPDIR" = "." ] ; then
+    TOPDIR=`pwd`
+fi
+export TOPDIR
+
+if [ "$RELEASE_BUILD"x != ""x ] ; then
+    . $CONF
+    OUT=${OUT_BASE}/.${RELEASE_BUILD}/firmware
+else
+    . $TOPDIR/CONF.sh
+    OUT=${OUT_BASE}/unofficial/non-free/firmware
+fi
+. $TOPDIR/settings.sh
+. $TOPDIR/common.sh
+
+# Allow callers to over-ride the build target, e.g. to build for sid
+if [ "$1"x != ""x ]; then
+    export CODENAME=$1
+fi
+
+BUILD="firmware_$CODENAME"
+DRYRUN_WAIT=0.1
+if [ "$DRYRUN"x != ""x ]; then
+    echo "Dry-run $0: BUILD $BUILD"
+    if [ $DRYRUN != count ]; then
+	sleep $DRYRUN_WAIT
+    fi
+    exit 0
+fi
+
+if [ "$CODENAME"x = ""x ] ; then
+    echo "Need to know what to produce!"
+    exit 1
+fi
+
+lockfile -! -l 43200 -r-1 $BUILDS_LOG.lock
+echo "$BUILD" >> $BUILDS_LOG
+BUILDNUM=$(wc -l < $BUILDS_LOG)
+rm -f $BUILDS_LOG.lock
+
+START=$(now)
+echo "$BUILDNUM/$NUM_BUILDS: Starting $BUILD build at $START"
+
+# Do stuff here!
+export TDIR=$(mktemp -d /srv/cdbuilder.debian.org/dst/deb-cd/tmp/firmware-$CODENAME.XXXXX)
+export BASEDIR=$TOPDIR/debian-cd
+mkdir -p $TDIR
+fakeroot $BASEDIR/tools/make-firmware-image $MIRROR $CODENAME $TDIR \
+	 > ~/build/log/$CODENAME-firmware-image.log 2>&1
+ret=$?
+
+if [ $ret = 0 ]; then
+
+    if [ "$RELEASE_BUILD"x = ""x ] ; then
+	DATE=`date +%Y%m%d`
+	mkdir -p $OUT/$CODENAME/$DATE
+	mv $TDIR/firmware*.* $TDIR/*SUMS $OUT/$CODENAME/$DATE/
+	echo "  $BUILD: Signing firmware checksums files using the automatic key"
+	~/build/sign-images $OUT/$CODENAME/$DATE ""
+	RSYNC_TARGET=$OUT/$CODENAME/$DATE
+    else
+	rm -rf $OUT
+	mkdir -p $OUT
+	mv $TDIR/firmware*.* $TDIR/*SUMS $OUT
+	RSYNC_TARGET=$OUT
+    fi
+
+    # Sync to umu.se
+    PETOUT=${RSYNC_TARGET##${OUT_BASE}/}
+    rsync_to_umu $RSYNC_TARGET/ $PETOUT/
+    publish_at_umu $PETOUT
+fi
+
+END=$(now)
+SPENT=$(calc_time $START $END)
+if [ $ret = 0 ]; then
+    echo "  $BUILD finished successfully (started at $START, ended at $END, took $SPENT)"
+else
+    echo "  $BUILD failed (started at $START, ended at $END, took $SPENT)"
+fi
+
+rm -rf $TDIR

@@ -1,0 +1,122 @@
+#!/bin/bash
+
+TOPDIR=$(dirname $0)
+if [ "$TOPDIR" = "." ] ; then
+    TOPDIR=`pwd`
+fi
+export TOPDIR
+
+. $TOPDIR/settings.sh
+. $TOPDIR/weekly.sh
+. $TOPDIR/common.sh
+
+BUILDLOCK=$HOME/.debian-cd.lock
+
+# Make sure the machine isn't rebooted while we're busy
+reboot_lock
+
+# Uncomment the following to use daily d-i builds for these images
+# rather than what's in the archive
+USE_DAILY_DI=Y
+
+if [ "$RELEASE_BUILD"x = ""x ] ; then
+    export RSYNC_TARGET=${OUT_BASE}/weekly-builds
+else
+    export RSYNC_TARGET=${OUT_BASE}/.${RELEASE_BUILD}/debian-cd
+    export CONF=~/build.${CODENAME}/CONF.sh.${RELEASE_BUILD}
+    export RELEASE_BUILD=$RELEASE_BUILD
+    # If we're doing a normal set of daily/weekly builds, leave the
+    # checksum filenames alone. Otherwise, make life easier for people
+    # combining things later and append a suitable name as we build.
+    export EXTENSION=".large"
+    USE_DAILY_DI=N
+    NOSNAP=1
+fi
+
+export DI=trixie
+export DI_DIST=${DI_DIST:-$DI}
+export DI_CODENAME=${DI_CODENAME:-$DI}
+export DRYRUN=$DRYRUN
+
+if [ "$USE_DAILY_DI"x = "Y"x ] ; then
+    export DI=sid
+    export DI_DIST=$DI
+    export DI_CODENAME=$DI
+    export DI_WWW_HOME=default
+    export DI_DIR="$ARCH_DI_DIR"
+else
+    unset DI_WWW_HOME
+fi
+
+export OUT_FREE_SID=${PUBDIRJIG}
+export OUT_FREE_TST=${PUBDIRJIG}
+export SUDO_USER=${SUDO_USER}
+
+#export NOEDU=1
+
+if [ "$PARALLEL"x = ""x ]; then
+    case $(hostname) in
+	casulana)
+	    PARALLEL=20;;
+	*)
+	    echo "Not running build on $(hostname)"
+	    exit 1
+	    ;;
+    esac
+fi
+
+# Export these so they'll affect Makefile behaviour too
+export NOLIVE NOINST NOEDU NOFW NOSNAP
+
+if lockfile -r0 $BUILDLOCK ; then
+
+    cd $TOPDIR
+
+    # Do the builds in parallel
+    NUM_BUILDS=0
+    if [ "$TARGETS"x = ""x ]; then
+	# Work out what builds we need automatically
+	if [ "$NOFW"x = ""x ]; then
+	    TARGETS="$TARGETS all_firmware"
+	    NUM_FW=$(make -f Makefile.weekly count_fw)
+	    NUM_BUILDS=$(($NUM_BUILDS + $NUM_FW))
+	fi
+	if [ "$NOINST"x = ""x ]; then
+	    TARGETS="$TARGETS all_inst"
+	    NUM_INST=$(make -f Makefile.weekly count_inst)
+	    NUM_BUILDS=$(($NUM_BUILDS + $NUM_INST))
+	fi
+	if [ "$NOLIVE"x = ""x ]; then
+	    TARGETS="$TARGETS all_live"
+	    NUM_LIVE=$(make -f Makefile.weekly count_live)
+	    NUM_BUILDS=$(($NUM_BUILDS + $NUM_LIVE))
+	fi
+    else
+	echo "Using specified builds $TARGETS"
+	NUM_BUILDS="N"
+    fi
+    echo "$NUM_BUILDS build(s) to run, trying up to $PARALLEL in parallel"
+    make -f Makefile.weekly clean_builds_log
+    make -f Makefile.weekly -j $PARALLEL $TARGETS NUM_BUILDS=$NUM_BUILDS
+
+    if [ "$NOINST"x = ""x ]; then
+	rsync_to_umu ${OUT_BASE}/cd-sources/ cd-sources/
+	publish_at_umu cd-sources
+
+	if [ "$NOSNAP"x = ""x ] ; then
+	    mkdir -p /tmp/snapshots
+	    rsync_to_umu /tmp/snapshots/ snapshots/
+	    publish_at_umu snapshots
+	    rmdir /tmp/snapshots/
+	fi
+
+	for DIR in $RSYNC_TARGET; do
+	    date -u > $DIR/trace/cdimage.debian.org
+	    PETOUT=${DIR##${OUT_BASE}/}
+	    rsync_to_umu $DIR/trace/ ${PETOUT}/trace/
+	    publish_at_umu ${PETOUT}/trace
+	done
+
+    fi
+    rm -f $BUILDLOCK
+fi

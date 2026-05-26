@@ -1,0 +1,143 @@
+#!/bin/bash
+#
+# Helper for image creation
+#
+
+# Pull in the core settings for all builds
+. settings.sh
+. weekly.sh
+. common.sh
+
+PUBDIRJIG=$1
+RSYNC_TARGET=$2
+ARCH=$3
+
+HOSTNAME=`hostname -f`
+LOCK=~/iso_run.lock
+START=$(now)
+
+# Check to see if another sync is in progress
+if lockfile -! -l 43200 -r-1 "$LOCK"; then  
+    echo $HOSTNAME is not doing another iso_run, lock file $LOCK exists
+    exit 1
+fi
+trap "rm -f $LOCK > /dev/null 2>&1" exit  
+
+COPY_START=$(now)
+
+# Poor man's rsync, but with some local optimisations
+copy_files() {
+    SRC=$1
+    TARGET=$2
+    ARCHES=$3
+
+    echo "Copying files for $ARCHES from $SRC to $TARGET"
+
+    DISKTYPES="cd dvd bd dlbd 16G"
+    DIRTYPES="iso jigdo list"
+
+    # Only make torrent files and dirs for release builds
+    if [ "$RELEASE_BUILD"x != ""x ] ; then
+	DIRTYPES="$DIRTYPES bt"
+    fi
+
+    CURRENT=`pwd`
+    cd $SRC
+    for ARCH in $ARCHES
+    do
+        for DISKTYPE in $DISKTYPES; do
+            for DIRTYPE in $DIRTYPES; do
+		if [ -d $ARCH/$DIRTYPE-$DISKTYPE ]; then
+                    mkdir -pv -m775 $TARGET/$ARCH.tmp/$DIRTYPE-$DISKTYPE
+		fi
+            done
+        done
+
+	# Copy the specific files across that we want in the
+	# publishing dir
+        cd $ARCH
+        find . -name '*.jigdo' -o -name '*.template' \
+	    -o -name '*.iso' \
+	    -o -name '*.torrent' \
+	    -o -name '*.list.gz' -o -name '*SUMS*' | \
+            xargs tar cf - | (cd $TARGET/$ARCH.tmp/ && tar xvf -)
+	
+	if [ "$RELEASE_BUILD"x = ""x ] ; then
+	    # Only populate the HEADER.html file for regular weekly
+	    # builds; we don't want it for releases
+            HUM_DATE=`date -u`
+            sed "s/ARCH/$ARCH/g;s/DATE/$HUM_DATE/g" ~/build.${CODENAME}/weekly.html \
+		> $TARGET/$ARCH.tmp/HEADER.html
+	fi
+
+	mkdir -pv $TARGET/$ARCH.tmp/log/$DATE
+	echo "Copying logfiles from $PWD to $TARGET/$ARCH.tmp/log/$DATE:"
+	cp -v $PWD/*.log $TARGET/$ARCH.tmp/log/$DATE
+	ln -sfv $DATE $TARGET/$ARCH.tmp/log/success
+	
+	# Now clean up any directories without any real content
+	# (i.e. empty dir, or just containing checksum files)
+	for dir in $TARGET/$ARCH.tmp/*-* ; do
+	    num=`ls -l $dir | grep -v -e SUMS -e total | wc -l`
+	    if [ $num = 0 ] ; then 
+		echo "Removing empty dir $dir"
+		rm -rvf $dir
+	    fi
+	done	
+
+        cd ..
+
+    done
+    cd $CURRENT
+}
+
+copy_files $PUBDIRJIG $RSYNC_TARGET $ARCH
+
+echo "$START: Starting $ARCH sync from $PUBDIRJIG to $RSYNC_TARGET"
+if [ -e $RSYNC_TARGET/$ARCH ] ; then
+    mv -f $RSYNC_TARGET/$ARCH $RSYNC_TARGET/$ARCH.old
+fi
+mv $RSYNC_TARGET/$ARCH.tmp $RSYNC_TARGET/$ARCH
+rm -rf $RSYNC_TARGET/$ARCH.old &
+
+# Update the trace file now to force a sync on free.hands.com after each arch
+mkdir -p $RSYNC_TARGET/trace
+date -u > $RSYNC_TARGET/trace/cdimage.debian.org
+
+# Generate the HEADER.html files in the subdirectories
+~/build.${CODENAME}/generate_headers ~/build.${CODENAME}/HEADER.html.in $RSYNC_TARGET/$ARCH $ARCH
+
+END=$(now)
+echo "$ARCH synced across to $RSYNC_TARGET; started at $START, copying started at $COPY_START, ended at $END"
+
+case $(hostname) in
+    pettersson*)
+	ISO_OPTIONS='--exclude .iso-wanted'
+	;;
+    *)
+	ISO_OPTIONS='--exclude *.iso'
+	;;
+esac
+
+# Publish the image
+# If we're on casulana, this will push things to umu.se via rsync
+# over ssh; on pettersson* we use the same script but no ssh to make
+# things as similar as possible
+SYNC_START=$(now)
+PETOUT=${RSYNC_TARGET##${OUT_BASE}/}
+echo "$START: Starting $ARCH sync from $RSYNC_TARGET/$ARCH to umu:${PETOUT}/$ARCH"
+(cd $RSYNC_TARGET/$ARCH && find . -name '*.iso' > .iso-wanted)
+rsync_to_umu $RSYNC_TARGET/$ARCH/ ${PETOUT}/$ARCH/ "$ISO_OPTIONS"
+rsync_to_umu $RSYNC_TARGET/trace/ ${PETOUT}/trace/
+publish_at_umu ${PETOUT}/$ARCH ${PETOUT}/trace
+SIZE=$(du -s -BM $ISO_OPTIONS $RSYNC_TARGET/$ARCH/ | awk '{gsub("M","",$1); print $1}')
+SYNC_END=$(now)
+TIME_TAKEN=$(calc_time $SYNC_START $SYNC_END)
+echo "$RSYNC_TARGET/$ARCH synced across to umu; started at $SYNC_START, ended at $SYNC_END; transferred $SIZE MB in $TIME_TAKEN"
+
+case $ARCH in
+    amd64|arm64) trigger_openqa $PETOUT "$(debversion)" ${DATE_BUILD/-/-w-} $ARCH ;;
+esac
+
+END=$(now)
+echo "$END: Finished"

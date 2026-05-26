@@ -1,0 +1,44 @@
+#!/bin/bash
+
+HTTPBASE="https://cdimage.debian.org/cdimage"
+
+MKTORRENT=mktorrent
+
+BASEDIR="$1"/
+shift
+
+for FILE in $@; do
+    ISODIR=`dirname $FILE`
+    BTDIR=`echo $ISODIR | sed 's/iso-/bt-/;s/usb-/bt-/'`
+    if [ ! -d $BTDIR ] ; then
+        mkdir -p $BTDIR
+    fi
+
+    # Add multiple http seeds: the release path *and* the archive path
+    # for both the free images and the non-free images - hopefully
+    # clients will use whichever is available!
+    case ${FILE} in
+	*live*)
+            VER=$(echo ${FILE} | sed 's,^.*/debian-\(live-\)*,,;s,-.*$,,')"-live"
+	    FREE=1
+            ;;
+	*)
+            VER=$(echo ${FILE} | sed 's,^.*/debian-*,,;s,-.*$,,')
+	    FREE=1
+            ;;
+    esac
+
+    # Remove some of the leading path here for the HTTP seeds
+    BASEFILE=${FILE##$BASEDIR}
+
+    HTTP1="${HTTPBASE}/release/${VER}/${BASEFILE}"
+    HTTP2="${HTTPBASE}/archive/${VER}/${BASEFILE}"
+
+    $MKTORRENT -a http://bttracker.debian.org:6969/announce \
+        -c 'Debian CD from cdimage.debian.org' \
+	-w ${HTTP1} \
+	-w ${HTTP2} \
+	-o ${FILE}.torrent \
+        $FILE > /dev/null
+    mv $FILE.torrent $BTDIR
+done
