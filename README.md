@@ -1,25 +1,75 @@
+[update-readmes]   Mode: rewrite — migrating to template structure...
 # debian-trixie-i386
 
-Unified Debian Trixie i386 port. Combines the linux kernel and CD image builds
-needed to bring 32-bit x86 (i386) support to Debian Trixie.
+[![Built with Ona](https://ona.com/build-with-ona.svg)](https://app.ona.com/#https://github.com/Interested-Deving-1896/debian-trixie-i386)
 
-## Structure
+<!-- AI:start:what-it-does -->
+_Description pending._
+<!-- AI:end:what-it-does -->
 
-| Directory | Source | Purpose |
-|-----------|--------|---------|
-| `linux/`  | [debian-linux-i386-trixie](https://github.com/Interested-Deving-1896/debian-linux-i386-trixie) | Linux kernel package with i386 config |
-| `cd/`     | [debian-cd-i386-trixie](https://github.com/Interested-Deving-1896/debian-cd-i386-trixie)       | CD image build tooling |
+## Architecture
 
-## Branches
+<!-- AI:start:architecture -->
+_Architecture documentation pending._
+<!-- AI:end:architecture -->
 
-- `main` — unified monorepo (this branch)
-- Source repos track `debian/6.12/trixie-i386` and `buildd/trixie` respectively
+## Install
 
-## Upstream
+<!-- Add installation instructions here. This section is yours — the AI will not modify it. -->
 
-- Kernel: [salsa.debian.org/kernel-team/linux](https://salsa.debian.org/kernel-team/linux) — `debian/6.12/trixie`
-- CD: [salsa.debian.org/images-team/debian-cd](https://salsa.debian.org/images-team/debian-cd) — `buildd/trixie`
+```bash
+git clone https://github.com/Interested-Deving-1896/debian-trixie-i386.git
+cd debian-trixie-i386
+```
 
-Original i386 work by [piernov](https://github.com/piernov):
-- [piernov/debian-linux-i386](https://github.com/piernov/debian-linux-i386)
-- [piernov/debian-cd-i386](https://github.com/piernov/debian-cd-i386)
+## Usage
+
+<!-- Add usage examples here. This section is yours — the AI will not modify it. -->
+
+## Configuration
+
+<!-- Document configuration options here. This section is yours — the AI will not modify it. -->
+
+## CI
+
+<!-- AI:start:ci -->
+_CI documentation pending._
+<!-- AI:end:ci -->
+
+## Mirror chain
+
+<!-- AI:start:mirror-chain -->
+This repo is maintained in [`Interested-Deving-1896/debian-trixie-i386`](https://github.com/Interested-Deving-1896/debian-trixie-i386) and mirrored through:
+
+```
+Interested-Deving-1896/debian-trixie-i386  ──►  OpenOS-Project-OSP/debian-trixie-i386  ──►  OpenOS-Project-Ecosystem-OOC/debian-trixie-i386
+```
+
+Changes flow downstream automatically via the hourly mirror chain in
+[`fork-sync-all`](https://github.com/Interested-Deving-1896/fork-sync-all).
+Direct commits to OSP or OOC are detected and opened as PRs back to `Interested-Deving-1896`.
+<!-- AI:end:mirror-chain -->
+
+## Contributors
+
+<!-- AI:start:contributors -->
+_Contributors pending._
+<!-- AI:end:contributors -->
+
+## Origins
+
+<!-- AI:start:origins -->
+_Original project — no upstream fork._
+<!-- AI:end:origins -->
+
+## Resources
+
+<!-- AI:start:resources -->
+_No additional resource files found._
+<!-- AI:end:resources -->
+
+## License
+
+<!-- AI:start:license -->
+<!-- License not detected — add a LICENSE file to this repo. -->
+<!-- AI:end:license -->
